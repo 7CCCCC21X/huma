@@ -5,37 +5,57 @@
   <title>Huma Airdrop 批量查询工具</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: "Segoe UI", sans-serif;
       max-width: 800px;
       margin: 40px auto;
       padding: 20px;
       background: #f4f6f8;
       text-align: center;
     }
+    h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #555;
+      margin-bottom: 20px;
+    }
     textarea {
       width: 100%;
-      height: 180px;
+      height: 160px;
       padding: 10px;
       font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
     }
     button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
+      margin-top: 12px;
+      padding: 10px 22px;
+      font-size: 15px;
       background: #0078d4;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
+    }
+    button:hover {
+      background-color: #005fa3;
+    }
+    #loadingText {
+      color: #0078d4;
+      font-weight: bold;
+      margin-top: 14px;
+      display: none;
     }
     table {
       width: 100%;
-      margin-top: 30px;
+      margin-top: 25px;
       border-collapse: collapse;
       background: white;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
     }
     th, td {
-      border: 1px solid #ccc;
+      border: 1px solid #ddd;
       padding: 10px;
       text-align: center;
     }
@@ -55,9 +75,10 @@
 </head>
 <body>
   <h2>Huma Airdrop 批量查询</h2>
-  <p>每行输入一个 Huma 钱包地址（EPS 开头）</p>
-  <textarea id="inputArea" placeholder="EPSxxxx..."></textarea><br>
+  <p>请输入 Solana 格式的钱包地址（每行一个，如 EPSxxxx...）</p>
+  <textarea id="inputArea" placeholder="EPS..."></textarea><br>
   <button onclick="startQuery()">开始查询</button>
+  <div id="loadingText">🔄 正在批量查询，请稍候...</div>
 
   <table id="resultTable" style="display:none">
     <thead>
@@ -74,8 +95,11 @@
     async function startQuery() {
       const addresses = document.getElementById("inputArea").value.trim().split(/\s+/);
       const resultBody = document.getElementById("resultBody");
+      const loadingText = document.getElementById("loadingText");
+
       resultBody.innerHTML = "";
       document.getElementById("resultTable").style.display = "table";
+      loadingText.style.display = "block";
 
       for (const address of addresses) {
         const tr = document.createElement("tr");
@@ -83,7 +107,8 @@
         tdAddress.textContent = address;
 
         const tdStatus = document.createElement("td");
-        tdStatus.textContent = "查询中...";
+        tdStatus.textContent = "⏳ 查询中...";
+        tdStatus.className = "";
 
         const tdAmount = document.createElement("td");
         tdAmount.textContent = "-";
@@ -98,10 +123,10 @@
           const json = await res.json();
 
           if (res.ok && json.amountUnlocked && Number(json.amountUnlocked) > 0) {
-            const amount = Number(json.amountUnlocked) / 1e9;
+            const amount = Math.floor(Number(json.amountUnlocked) / 1e9);
             tdStatus.textContent = "✅ 合格";
             tdStatus.className = "eligible";
-            tdAmount.textContent = amount.toFixed(3) + " HUMA";
+            tdAmount.textContent = `${amount} HUMA`;
           } else {
             tdStatus.textContent = "❌ 不合格";
             tdStatus.className = "not-eligible";
@@ -113,6 +138,8 @@
           tdAmount.textContent = "-";
         }
       }
+
+      loadingText.style.display = "none";
     }
   </script>
 </body>
