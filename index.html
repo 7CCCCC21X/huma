@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>Huma Airdrop 批量查询工具</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f4f6f8;
+      text-align: center;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      padding: 10px;
+      font-size: 14px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      margin-top: 30px;
+      border-collapse: collapse;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background: #2f3542;
+      color: white;
+    }
+    .eligible {
+      color: green;
+      font-weight: bold;
+    }
+    .not-eligible {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>Huma Airdrop 批量查询</h2>
+  <p>每行输入一个 Huma 钱包地址（EPS 开头）</p>
+  <textarea id="inputArea" placeholder="EPSxxxx..."></textarea><br>
+  <button onclick="startQuery()">开始查询</button>
+
+  <table id="resultTable" style="display:none">
+    <thead>
+      <tr>
+        <th>地址</th>
+        <th>资格</th>
+      </tr>
+    </thead>
+    <tbody id="resultBody"></tbody>
+  </table>
+
+  <script>
+    async function startQuery() {
+      const addresses = document.getElementById("inputArea").value.trim().split(/\s+/);
+      const resultBody = document.getElementById("resultBody");
+      resultBody.innerHTML = "";
+      document.getElementById("resultTable").style.display = "table";
+
+      for (const address of addresses) {
+        const tr = document.createElement("tr");
+        const tdAddress = document.createElement("td");
+        tdAddress.textContent = address;
+
+        const tdStatus = document.createElement("td");
+        tdStatus.textContent = "查询中...";
+
+        tr.appendChild(tdAddress);
+        tr.appendChild(tdStatus);
+        resultBody.appendChild(tr);
+
+        try {
+          const res = await fetch(`/api/proxy?address=${address}`);
+          const json = await res.json();
+
+          if (res.ok && json.wallet) {
+            tdStatus.textContent = "✅ 合格";
+            tdStatus.className = "eligible";
+          } else {
+            tdStatus.textContent = "❌ 不合格";
+            tdStatus.className = "not-eligible";
+          }
+        } catch (e) {
+          tdStatus.textContent = "查询失败";
+          tdStatus.className = "not-eligible";
+        }
+      }
+    }
+  </script>
+</body>
+</html>
