@@ -64,6 +64,7 @@
       <tr>
         <th>地址</th>
         <th>资格</th>
+        <th>可领取数量</th>
       </tr>
     </thead>
     <tbody id="resultBody"></tbody>
@@ -84,24 +85,32 @@
         const tdStatus = document.createElement("td");
         tdStatus.textContent = "查询中...";
 
+        const tdAmount = document.createElement("td");
+        tdAmount.textContent = "-";
+
         tr.appendChild(tdAddress);
         tr.appendChild(tdStatus);
+        tr.appendChild(tdAmount);
         resultBody.appendChild(tr);
 
         try {
           const res = await fetch(`/api/proxy?address=${address}`);
           const json = await res.json();
 
-          if (res.ok && json.wallet) {
+          if (res.ok && json.amountUnlocked && Number(json.amountUnlocked) > 0) {
+            const amount = Number(json.amountUnlocked) / 1e9;
             tdStatus.textContent = "✅ 合格";
             tdStatus.className = "eligible";
+            tdAmount.textContent = amount.toFixed(3) + " HUMA";
           } else {
             tdStatus.textContent = "❌ 不合格";
             tdStatus.className = "not-eligible";
+            tdAmount.textContent = "0";
           }
         } catch (e) {
           tdStatus.textContent = "查询失败";
           tdStatus.className = "not-eligible";
+          tdAmount.textContent = "-";
         }
       }
     }
